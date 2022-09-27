@@ -1,0 +1,72 @@
+#!/bin/bash
+
+# Setting Global variables
+timestamp="$(date +'%d%m%Y')"
+src_dir=/opt/test
+
+#----------------------------------------
+function create(){
+
+if [ -d "$src_dir" ]; then
+  echo "Directory exists and copying files"
+  find ~ -type f -name "id_*.pub" -exec cp {} $src_dir \;
+else
+  echo "Creating directory"
+  mkdir $src_dir
+  echo "Copying .pub files"
+  find ~ -type f -name "id_*.pub" -exec cp {} $src_dir \;
+fi
+}
+
+#-----------------------------------------
+function package(){
+echo "Creating the package..."
+cd $src_dir && tar -cvf /opt/output_$timestamp.tar . >> /dev/null
+hang
+echo "Done"
+}
+
+#-----------------------------------------
+function memory(){
+
+disk_space=`df -h | awk {'print $4'} | head -2 | tail -1 | cut -c'1'`
+
+if [ $disk_space -ge '3' ]; then
+  hang
+  echo "INFO: Having memory"
+else
+  hang
+  echo "ERROR: Memory is getting full"
+fi
+}
+
+#-----------------------------------------
+function process(){
+
+process_id=`ps -ef | grep systemd | awk {'print $3'} | head -1`
+
+if [ $? != 0 ]; then
+  hang
+  echo "ERROR: process is not running"
+else
+  hang
+  echo "Process ID is: $process_id"
+fi
+}
+
+#-----------------------------------------
+function hang(){
+  echo "Checking..."
+  sleep 1s
+}
+
+#-----------------------------------------
+function main(){
+   create
+   package
+   memory
+   process
+}
+
+# ------------- Script Starts here ---------------
+main
